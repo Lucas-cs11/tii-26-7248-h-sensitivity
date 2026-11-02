@@ -6,8 +6,8 @@
   "source_raw_csv": "/Users/lucas/tii_tpn_h_sensitivity/source_h_sweep/h_sweep_raw.csv",
   "source_validation_json": "/Users/lucas/tii_tpn_h_sensitivity/source_h_sweep/validation.json",
   "workers": 2,
-  "timeout_seconds_per_analysis": 180,
-  "threshold_case_timeout_seconds": 6000,
+  "timeout_seconds_per_analysis": 350,
+  "threshold_case_timeout_seconds": 18000,
   "complete_analysis_timeout_seconds_per_level": 180,
   "complete_analysis_relative_levels": [
     0.8,
