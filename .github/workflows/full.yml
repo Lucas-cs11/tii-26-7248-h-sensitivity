@@ -1,0 +1,31 @@
+name: full
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 359
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r experiment/requirements.txt
+      - run: |
+          mkdir -p results
+          S=$(printf "%03d" ${{ matrix.shard }})
+          python experiment/run_threshold.py --cohort cohorts/shard_$S.csv --output results/shard_$S.csv --workers 4 --baseline-verdict AMB
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: threshold-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: results/
+          if-no-files-found: warn
+          retention-days: 14
