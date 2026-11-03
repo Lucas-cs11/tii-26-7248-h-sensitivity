@@ -42,7 +42,7 @@ jobs:
           PYTHONHASHSEED: "0"
         run: |
           S=$(printf "%03d" ${{ matrix.shard }})
-          python experiment/run_complete_analysis.py --cohort cohorts/complete/remaining/shards/shard_$S.csv --output results/complete_fullcov_$S.csv.gz --workers 4
+          python experiment/run_complete_analysis.py --cohort cohorts/complete/remaining/shards/shard_$S.csv --output results/complete_fullcov_$S.csv --workers 4
       - name: finalize manifest
         if: always()
         run: python experiment/finalize_shard_manifest.py "${{ matrix.shard }}"
