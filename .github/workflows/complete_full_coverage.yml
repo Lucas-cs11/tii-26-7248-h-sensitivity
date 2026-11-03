@@ -1,0 +1,55 @@
+name: complete-full-coverage
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: m
+        run: |
+          M=$(python3 -c 'import json;d=json.load(open("cohorts/complete/remaining/shard_index.json"));print(json.dumps(d["shards"]))')
+          echo "matrix=$M" >> "$GITHUB_OUTPUT"
+          echo "shards=$M"
+  run:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r experiment/requirements.txt
+      - name: provenance
+        run: |
+          mkdir -p results
+          python experiment/write_fullcov_manifest.py "${{ matrix.shard }}"
+      - env:
+          OPENBLAS_NUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+          PYTHONHASHSEED: "0"
+        run: |
+          S=$(printf "%03d" ${{ matrix.shard }})
+          python experiment/run_complete_analysis.py --cohort cohorts/complete/remaining/shards/shard_$S.csv --output results/complete_fullcov_$S.csv.gz --workers 4
+      - name: finalize manifest
+        if: always()
+        run: python experiment/finalize_shard_manifest.py "${{ matrix.shard }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fullcov_shard_${{ matrix.shard }}-${{ github.run_id }}
+          path: results/
+          if-no-files-found: warn
+          retention-days: 14
