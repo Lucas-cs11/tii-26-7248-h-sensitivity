@@ -26,7 +26,8 @@ def main() -> None:
 
 
 def _run_level(model: dict, relative_level: float, order_position: int) -> dict:
-    H = float(model["H_amb_star"]) * relative_level
+    # baseline-normalized Experiment B: H = H_base * H_ratio (NOT H_amb_star)
+    H = float(model["H_base"]) * relative_level
     payload = {
         "baseline": model,
         "action": "complete_analysis",
@@ -67,6 +68,9 @@ def _run_level(model: dict, relative_level: float, order_position: int) -> dict:
             "H_amb_star": model["H_amb_star"],
             "H_amb_ratio": model["H_amb_ratio"],
             "relative_H_level": relative_level,
+            "H_base": float(model["H_base"]),
+            "H_ratio": relative_level,
+            "H_value": H,
             "H": H,
             "H_over_H_base": H / output["H_base"],
             "order_rotation": model["order_rotation"],
@@ -118,6 +122,9 @@ def _failure(
         "H_amb_star": model["H_amb_star"],
         "H_amb_ratio": model["H_amb_ratio"],
         "relative_H_level": relative_level,
+        "H_base": float(model["H_base"]),
+        "H_ratio": relative_level,
+        "H_value": H,
         "H": H,
         "H_over_H_base": H / float(model["H_base"]),
         "order_rotation": model["order_rotation"],

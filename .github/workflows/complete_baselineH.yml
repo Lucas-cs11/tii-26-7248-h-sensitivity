@@ -1,0 +1,84 @@
+name: complete-baselineH
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "smoke = 3 models from shard 000; full = all 10 shards"
+        type: choice
+        options: [smoke, full]
+        default: smoke
+permissions:
+  contents: read
+jobs:
+  smoke:
+    if: inputs.mode == 'smoke'
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: python -m pip install -r experiment/requirements.txt
+      - env:
+          OPENBLAS_NUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+          PYTHONHASHSEED: "0"
+        run: |
+          mkdir -p results
+          python experiment/run_complete_analysis.py --cohort cohorts/complete/baselineH_shards/smoke3.csv --output results/smoke3.csv --workers 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: baselineH-smoke-${{ github.run_id }}, path: results/}
+  full:
+    if: inputs.mode == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: python -m pip install -r experiment/requirements.txt
+      - name: provenance
+        run: |
+          mkdir -p results
+          python - <<'PY'
+import json, platform, hashlib
+from pathlib import Path
+shard = "${{ matrix.shard }}"
+coh = Path("cohorts/complete/baselineH_shards/shard_%03d.csv" % int(shard))
+meta = {
+  "experiment": "baseline_H_complete_analysis",
+  "shard_id": "baselineH_shard_%03d" % int(shard),
+  "workflow_run_id": "${{ github.run_id }}",
+  "job_id": "${{ github.job }}",
+  "source_sha": "${{ github.sha }}",
+  "cohort_sha": hashlib.sha256(coh.read_bytes()).hexdigest(),
+  "python": platform.python_version(),
+  "runner_image": platform.platform(),
+  "workers": 4,
+  "h_ratios": [0.8, 1.0, 1.2, 1.5, 2.0],
+  "analysis_mode": "COMPLETE_SET",
+  "timeout_s": 180,
+  "H_axis": "H = H_base * H_ratio",
+}
+Path("results/shard_manifest_%s.json" % shard).write_text(json.dumps(meta, indent=1))
+PY
+      - env:
+          OPENBLAS_NUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+          PYTHONHASHSEED: "0"
+        run: |
+          S=$(printf "%03d" ${{ matrix.shard }})
+          python experiment/run_complete_analysis.py --cohort cohorts/complete/baselineH_shards/shard_$S.csv --output results/baselineH_complete_$S.csv --workers 4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: baselineH_shard_${{ matrix.shard }}-${{ github.run_id }}, path: results/}
