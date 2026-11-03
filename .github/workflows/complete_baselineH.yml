@@ -30,7 +30,9 @@ jobs:
           python experiment/run_complete_analysis.py --cohort cohorts/complete/baselineH_shards/smoke3.csv --output results/smoke3.csv --workers 3
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: baselineH-smoke-${{ github.run_id }}, path: results/}
+        with:
+          name: baselineH-smoke-${{ github.run_id }}
+          path: results/
   full:
     if: inputs.mode == 'full'
     runs-on: ubuntu-latest
@@ -60,4 +62,6 @@ jobs:
           python experiment/run_complete_analysis.py --cohort cohorts/complete/baselineH_shards/shard_$S.csv --output results/baselineH_complete_$S.csv --workers 4
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: baselineH_shard_${{ matrix.shard }}-${{ github.run_id }}, path: results/}
+        with:
+          name: baselineH_shard_${{ matrix.shard }}-${{ github.run_id }}
+          path: results/
