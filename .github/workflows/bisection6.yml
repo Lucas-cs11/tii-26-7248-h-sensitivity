@@ -1,0 +1,31 @@
+name: bisection6
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r experiment/requirements.txt
+      - run: python experiment/raise_bisection_iters.py
+      - env:
+          OPENBLAS_NUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+          PYTHONHASHSEED: "0"
+        run: |
+          mkdir -p results
+          python experiment/run_threshold.py --cohort cohorts/bisection6/cohort.csv --output results/bisection6.csv --workers 6 --baseline-verdict AMB
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bisection6-${{ github.run_id }}
+          path: results/
+          if-no-files-found: warn
