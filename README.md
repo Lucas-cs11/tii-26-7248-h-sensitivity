@@ -1,4 +1,8 @@
-> **Archived companion repository.** The canonical, reviewer-facing package for TII-26-7248 lives at **[Lucas-cs11/tii-26-7248-reproducibility](https://github.com/Lucas-cs11/tii-26-7248-reproducibility)** (frozen protocols, execution code, result summaries and claim-to-evidence map). This repository is kept as the historical archive with the full raw data.\n\n---\n\n# TII-26-7248 — H-sensitivity threshold experiment (GitHub Actions compute)
+> **Archived companion repository.** The canonical, reviewer-facing package for TII-26-7248 lives at **[Lucas-cs11/tii-26-7248-reproducibility](https://github.com/Lucas-cs11/tii-26-7248-reproducibility)** (frozen protocols, execution code, result summaries and claim-to-evidence map). This repository is kept as the historical archive with the full raw data.
+
+---
+
+# TII-26-7248 — H-sensitivity threshold experiment (GitHub Actions compute)
 
 Companion repository for the H-sensitivity experiment of
 *Bounded Task-Completion Diagnosability of Time Petri Nets: Verification and Firing-Interval Adjustment* (IEEE TII, TII-26-7248).
